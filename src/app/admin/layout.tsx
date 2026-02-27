@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 
 const NAV = [
   { href: "/admin/templates", label: "Templates" },
@@ -11,20 +10,6 @@ const NAV = [
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const router = useRouter();
-  const [ready, setReady] = useState(false);
-
-  useEffect(() => {
-    // Quick auth check — redirect to login if no token
-    const token = document.cookie.includes("admin_token");
-    if (!token) {
-      router.replace("/login");
-      return;
-    }
-    setReady(true);
-  }, [router]);
-
-  if (!ready) return null;
 
   return (
     <div className="min-h-screen bg-gray-950 text-gray-100">
