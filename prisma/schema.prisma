@@ -1,14 +1,246 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
+}
+
+// ===== ENUMS =====
+
+enum KasbonStatus {
+  REQUESTED
+  PENDING
+  COMPLETED
+  REJECTED
+}
+
+enum AdminRole {
+  VIEWER
+  OPERATOR
+  ADMIN
+  SUPER_ADMIN
+}
+
+// ===== SHARED MODELS (same DB as Entroly web) =====
+
+model User {
+  id            String     @id @default(cuid())
+  email         String?    @unique
+  username      String?    @unique
+  password      String?
+  name          String?
+  emailVerified DateTime?
+  image         String?
+  manychatId    String?    @unique @map("manychat_id")
+  whatsapp      String?
+  go            Boolean    @default(false)
+  mcn           Boolean    @default(false)
+  adminRole     AdminRole? @map("admin_role")
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  profiles         Profile[]
+  accounts         Account[]
+  sessions         Session[]
+  aiGeneratedPages AIGeneratedPage[]
+  commission       Commission?
+  kasbons          Kasbon[]
+  adminAuditLogs   AdminAuditLog[]
+}
+
+model Commission {
+  id                  String   @id @default(cuid())
+  userId              String   @unique
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  paidCommission      BigInt?  @map("paid_commission")
+  pendingCommission   BigInt?  @map("pending_commission")
+  cancelledCommission BigInt?  @map("cancelled_commission")
+  agencyPercentage    Int?     @map("agency_percentage")
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}
+
+model Kasbon {
+  id        String       @id @default(cuid())
+  userId    String
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amount    BigInt
+  status    KasbonStatus @default(REQUESTED)
+  note      String?
+  adminNote String?      @map("admin_note")
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  @@index([userId])
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Profile {
+  id                    String   @id @default(cuid())
+  username              String   @unique
+  displayName           String
+  bio                   String?
+  avatarUrl             String?
+  userId                String?
+  user                  User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  backgroundColor       String   @default("#0f172a")
+  backgroundType        String   @default("solid")
+  backgroundGradient    String?
+  backgroundImage       String?
+  profileTextColor      String   @default("#f1f5f9")
+  profileAccentColor    String   @default("#10b981")
+  profileBioColor       String   @default("#94a3b8")
+  fontFamily            String   @default("Inter")
+  avatarBorderColor     String   @default("#10b981")
+  avatarBorderWidth     Int      @default(4)
+  linkButtonStyle       String   @default("rounded")
+  linkButtonColor       String   @default("#ffffff")
+  linkButtonTextColor   String   @default("#0f172a")
+  linkButtonBorder      String   @default("none")
+  linkButtonBorderColor String   @default("#10b981")
+  linkButtonShadow      String   @default("md")
+  linkButtonShadowColor String   @default("#000000")
+  linkButtonAnimation   String   @default("scale")
+  linkButtonBorderWidth Int      @default(0)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  links                 Link[]
+
+  @@index([username])
+}
+
+model Link {
+  id          String  @id @default(cuid())
+  title       String
+  url         String
+  icon        String  @default("")
+  order       Int
+  enabled     Boolean @default(true)
+  type        String  @default("classic")
+  buttonColor String?
+  textColor   String?
+  borderColor String?
+  borderStyle String?
+  borderWidth Int?
+  buttonStyle String?
+  shadow      String?
+  shadowColor String?
+  animation   String?
+  iconColor   String?
+  thumbnail   String?
+  profileId   String
+  profile     Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+}
+
+model AIGeneratedPage {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  prompt        String
+  profession    String?
+  style         String   @default("modern")
+  colorScheme   String   @default("dark")
+  generatedHtml String
+  generatedCss  String?
+  sourceType    String   @default("generated")
+  sourceUrl     String?
+  slug          String   @unique
+  isPublished   Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([slug])
+}
+
+// ===== D-01: ADMIN PANEL MODELS =====
+
+model Template {
+  id                       String    @id @default(cuid())
+  name                     String
+  category                 String
+  seedanceConfigJson       Json      @map("seedance_config_json")
+  fallbackVendorConfigJson Json?     @map("fallback_vendor_config_json")
+  sampleThumbnailUrl       String?   @map("sample_thumbnail_url")
+  performanceTags          String[]  @map("performance_tags")
+  performanceScore         Float?    @map("performance_score")
+  isActive                 Boolean   @default(true) @map("is_active")
+  archivedAt               DateTime? @map("archived_at")
+  createdBy                String    @map("created_by")
+  createdAt                DateTime  @default(now()) @map("created_at")
+  updatedAt                DateTime  @updatedAt @map("updated_at")
+
+  @@index([isActive])
+  @@index([category])
+  @@map("templates")
+}
+
+model ScriptLibrary {
+  id         String   @id @default(cuid())
+  text       String
+  poiType    String   @map("poi_type")
+  language   String
+  market     String
+  usageCount Int      @default(0) @map("usage_count")
+  isActive   Boolean  @default(true) @map("is_active")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  @@index([poiType])
+  @@index([language, market])
+  @@map("script_library")
+}
+
+model AdminAuditLog {
+  id           String   @id @default(cuid())
+  operatorId   String   @map("operator_id")
+  operatorRole String   @map("operator_role")
+  actionType   String   @map("action_type")
+  entityType   String   @map("entity_type")
+  entityId     String   @map("entity_id")
+  beforeValue  Json?    @map("before_value")
+  afterValue   Json?    @map("after_value")
+  ipAddress    String?  @map("ip_address")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  operator User @relation(fields: [operatorId], references: [id])
+
+  @@index([operatorId])
+  @@index([entityType, entityId])
+  @@index([createdAt])
+  @@map("admin_audit_logs")
 }
