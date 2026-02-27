@@ -3,9 +3,9 @@ import { AdminRole } from "@prisma/client";
 
 interface WriteAuditLogParams {
   operatorId: string;
-  operatorRole: AdminRole;
-  actionType: "CREATE" | "UPDATE" | "DELETE" | "ARCHIVE";
-  entityType: "TEMPLATE" | "SCRIPT";
+  operatorRole: AdminRole | string;
+  actionType: string;
+  entityType: string;
   entityId: string;
   beforeValue?: object | null;
   afterValue?: object | null;
