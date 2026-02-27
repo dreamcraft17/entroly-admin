@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 const NAV = [
   { href: "/admin/templates", label: "Templates" },
@@ -12,12 +12,18 @@ const NAV = [
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
+
+  async function handleLogout() {
+    await fetch("/api/auth/logout", { method: "POST" });
+    router.replace("/login");
+  }
 
   return (
     <div className="min-h-screen bg-gray-950 text-gray-100">
       <header className="border-b border-gray-800 px-6 py-4 flex items-center gap-8">
         <span className="font-semibold text-white tracking-tight">ENTROPI Admin</span>
-        <nav className="flex gap-1">
+        <nav className="flex gap-1 flex-1">
           {NAV.map((item) => (
             <Link
               key={item.href}
@@ -32,6 +38,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </Link>
           ))}
         </nav>
+        <button
+          onClick={handleLogout}
+          className="px-3 py-1.5 text-sm text-gray-400 hover:text-white hover:bg-gray-800/50 rounded transition-colors"
+        >
+          Logout
+        </button>
       </header>
       <main className="p-6">{children}</main>
     </div>
