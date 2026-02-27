@@ -22,6 +22,19 @@ enum AdminRole {
   SUPER_ADMIN
 }
 
+enum CampaignStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+  CLOSED
+}
+
+enum CampaignFrequency {
+  ONE_TIME
+  WEEKLY
+  MONTHLY
+}
+
 // ===== EXISTING MODELS (introspected from DB) =====
 
 model User {
@@ -47,6 +60,7 @@ model User {
   RefreshToken     RefreshToken[]
   sessions         Session[]
   adminAuditLogs   AdminAuditLog[]
+  campaigns        Campaign[]
 }
 
 model Commission {
@@ -231,6 +245,53 @@ model ScriptLibrary {
   @@index([poiType])
   @@index([language, market])
   @@map("script_library")
+}
+
+// ===== D-02: POI & CAMPAIGN MODELS =====
+
+model Poi {
+  id         String   @id @default(cuid())
+  externalId String?  @unique @map("external_id")
+  name       String
+  type       String   // ACC, TTD, FNB
+  market     String   // IDN, US, SGP
+  address    String?
+  city       String?
+  isActive   Boolean  @default(true) @map("is_active")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  @@index([type])
+  @@index([market])
+  @@index([isActive])
+  @@map("pois")
+}
+
+model Campaign {
+  id              String            @id @default(cuid())
+  name            String
+  description     String?
+  targetPoiTypes  String[]          @map("target_poi_types")
+  requiredPosts   Int               @map("required_posts")
+  creditReward    Decimal           @map("credit_reward") @db.Decimal(18, 4)
+  currency        String            @default("IDR")
+  startDate       DateTime          @map("start_date")
+  endDate         DateTime          @map("end_date")
+  maxParticipants Int?              @map("max_participants")
+  maxTotalCredits Decimal?          @map("max_total_credits") @db.Decimal(18, 4)
+  totalCredited   Decimal           @default(0) @map("total_credited") @db.Decimal(18, 4)
+  frequency       CampaignFrequency @default(ONE_TIME)
+  status          CampaignStatus    @default(DRAFT)
+  autoPublish     Boolean           @default(false) @map("auto_publish")
+  createdBy       String            @map("created_by")
+  createdAt       DateTime          @default(now()) @map("created_at")
+  updatedAt       DateTime          @updatedAt @map("updated_at")
+
+  creator User @relation(fields: [createdBy], references: [id])
+
+  @@index([status])
+  @@index([startDate, endDate])
+  @@map("campaigns")
 }
 
 model AdminAuditLog {
