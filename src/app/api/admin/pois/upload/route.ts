@@ -72,7 +72,8 @@ export async function POST(req: NextRequest) {
       readable.end(buffer);
       await workbook.csv.read(readable);
     } else {
-      await workbook.xlsx.load(buffer as unknown as Buffer);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await workbook.xlsx.load(buffer as any);
     }
   } catch {
     return NextResponse.json({ error: "Failed to parse file" }, { status: 400 });
