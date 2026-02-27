@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { writeAuditLog } from "@/lib/audit-log";
-import { Prisma } from "@prisma/client";
 
 // POST /api/admin/campaigns/cron
 // Called by external scheduler (cron job / GitHub Actions / systemd timer).

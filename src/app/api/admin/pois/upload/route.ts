@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import ExcelJS from "exceljs";
+import { PassThrough } from "stream";
 import { prisma } from "@/lib/prisma";
 import { verifyAdminToken, hasMinRole } from "@/lib/auth";
 
@@ -67,8 +68,7 @@ export async function POST(req: NextRequest) {
   const workbook = new ExcelJS.Workbook();
   try {
     if (ext === "csv") {
-      const stream = require("stream");
-      const readable = new stream.PassThrough();
+      const readable = new PassThrough();
       readable.end(buffer);
       await workbook.csv.read(readable);
     } else {
@@ -109,7 +109,6 @@ export async function POST(req: NextRequest) {
 
   // All active POIs in DB (to find deactivated)
   const allActivePois = await prisma.poi.findMany({ where: { isActive: true } });
-  const allActiveIds = new Set(allActivePois.map((p) => p.externalId).filter(Boolean) as string[]);
 
   const added: PoiRow[] = [];
   const updated: (PoiRow & { changes: string[] })[] = [];
