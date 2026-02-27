@@ -1,8 +1,7 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
-import { CampaignStatus } from "@prisma/client";
 
-const STATUS_COLORS: Record<CampaignStatus, string> = {
+const STATUS_COLORS: Record<string, string> = {
   DRAFT: "bg-gray-700 text-gray-300",
   ACTIVE: "bg-green-900 text-green-300",
   PAUSED: "bg-yellow-900 text-yellow-300",
