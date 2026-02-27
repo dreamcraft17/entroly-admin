@@ -104,7 +104,7 @@ export async function POST(req: NextRequest) {
 
   // Fetch existing POIs by externalId
   const existingPois = await prisma.poi.findMany({
-    where: { externalId: { in: [...fileExternalIds] } },
+    where: { externalId: { in: Array.from(fileExternalIds) } },
   });
   const existingMap = new Map(existingPois.map((p) => [p.externalId!, p]));
 
