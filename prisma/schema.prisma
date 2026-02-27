@@ -22,55 +22,55 @@ enum AdminRole {
   SUPER_ADMIN
 }
 
-// ===== SHARED MODELS (same DB as Entroly web) =====
+// ===== EXISTING MODELS (introspected from DB) =====
 
 model User {
-  id            String     @id @default(cuid())
-  email         String?    @unique
-  username      String?    @unique
-  password      String?
-  name          String?
-  emailVerified DateTime?
-  image         String?
-  manychatId    String?    @unique @map("manychat_id")
-  whatsapp      String?
-  go            Boolean    @default(false)
-  mcn           Boolean    @default(false)
-  adminRole     AdminRole? @map("admin_role")
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
-
-  profiles         Profile[]
-  accounts         Account[]
-  sessions         Session[]
+  id               String            @id @default(cuid())
+  email            String?           @unique
+  password         String?
+  name             String?
+  emailVerified    DateTime?
+  image            String?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  username         String?           @unique
+  manychatId       String?           @unique @map("manychat_id")
+  go               Boolean           @default(false)
+  mcn              Boolean           @default(false)
+  whatsapp         String?
+  adminRole        AdminRole?        @map("admin_role")
   aiGeneratedPages AIGeneratedPage[]
+  accounts         Account[]
   commission       Commission?
   kasbons          Kasbon[]
+  profiles         Profile[]
+  RefreshToken     RefreshToken[]
+  sessions         Session[]
   adminAuditLogs   AdminAuditLog[]
 }
 
 model Commission {
   id                  String   @id @default(cuid())
   userId              String   @unique
-  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   paidCommission      BigInt?  @map("paid_commission")
   pendingCommission   BigInt?  @map("pending_commission")
-  cancelledCommission BigInt?  @map("cancelled_commission")
-  agencyPercentage    Int?     @map("agency_percentage")
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
+  agencyPercentage    Int?     @map("agency_percentage")
+  cancelledCommission BigInt?  @map("cancelled_commission")
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Kasbon {
   id        String       @id @default(cuid())
   userId    String
-  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   amount    BigInt
   status    KasbonStatus @default(REQUESTED)
   note      String?
   adminNote String?      @map("admin_note")
   createdAt DateTime     @default(now())
   updatedAt DateTime     @updatedAt
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
 }
@@ -88,8 +88,7 @@ model Account {
   scope             String?
   id_token          String?
   session_state     String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
 }
@@ -117,7 +116,6 @@ model Profile {
   bio                   String?
   avatarUrl             String?
   userId                String?
-  user                  User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
   backgroundColor       String   @default("#0f172a")
   backgroundType        String   @default("solid")
   backgroundGradient    String?
@@ -140,8 +138,7 @@ model Profile {
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
   links                 Link[]
-
-  @@index([username])
+  user                  User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Link {
@@ -170,7 +167,6 @@ model Link {
 model AIGeneratedPage {
   id            String   @id @default(cuid())
   userId        String
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   prompt        String
   profession    String?
   style         String   @default("modern")
@@ -183,8 +179,20 @@ model AIGeneratedPage {
   isPublished   Boolean  @default(false)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
 
-  @@index([slug])
+model RefreshToken {
+  id        String   @id
+  token     String   @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  revoked   Boolean  @default(false)
+  User      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@index([userId])
 }
 
 // ===== D-01: ADMIN PANEL MODELS =====
