@@ -20,45 +20,55 @@ export function hasMinRole(userRole: AdminRole, minRole: AdminRole): boolean {
   return ROLE_HIERARCHY[userRole] >= ROLE_HIERARCHY[minRole];
 }
 
-async function getPublicKey() {
-  const rawKey = process.env.JWT_PUBLIC_KEY;
-  if (!rawKey) throw new Error("JWT_PUBLIC_KEY not configured");
-  const pem = rawKey.replace(/\\n/g, "\n");
-  return importSPKI(pem, "RS256");
+function extractToken(req: NextRequest): string | null {
+  return (
+    req.cookies.get("admin_token")?.value ??
+    req.headers.get("authorization")?.replace("Bearer ", "") ??
+    null
+  );
 }
 
-export async function verifyAdminToken(
-  req: NextRequest
-): Promise<AdminUser | null> {
-  const token =
-    req.cookies.get("admin_token")?.value ??
-    req.headers.get("authorization")?.replace("Bearer ", "");
+function parsePayload(payload: Record<string, unknown>): AdminUser | null {
+  if (!payload.sub || !payload.email || !payload.adminRole) return null;
+  return {
+    id: payload.sub as string,
+    email: payload.email as string,
+    name: (payload.name as string) ?? null,
+    adminRole: payload.adminRole as AdminRole,
+  };
+}
 
-  if (!token) return null;
-
+// Verify HS256 token (issued by admin login)
+async function verifyHS256(token: string): Promise<AdminUser | null> {
   try {
-    const publicKey = await getPublicKey();
-    const { payload } = await jwtVerify(token, publicKey, {
-      algorithms: ["RS256"],
-    });
-
-    if (
-      !payload.sub ||
-      !payload.email ||
-      !payload.adminRole
-    ) {
-      return null;
-    }
-
-    return {
-      id: payload.sub,
-      email: payload.email as string,
-      name: (payload.name as string) ?? null,
-      adminRole: payload.adminRole as AdminRole,
-    };
+    const secret = new TextEncoder().encode(process.env.ADMIN_JWT_SECRET!);
+    const { payload } = await jwtVerify(token, secret, { algorithms: ["HS256"] });
+    return parsePayload(payload as Record<string, unknown>);
   } catch {
     return null;
   }
+}
+
+// Verify RS256 token (issued by SSO)
+async function verifyRS256(token: string): Promise<AdminUser | null> {
+  try {
+    const rawKey = process.env.JWT_PUBLIC_KEY;
+    if (!rawKey) return null;
+    const pem = rawKey.replace(/\\n/g, "\n");
+    const publicKey = await importSPKI(pem, "RS256");
+    const { payload } = await jwtVerify(token, publicKey, { algorithms: ["RS256"] });
+    return parsePayload(payload as Record<string, unknown>);
+  } catch {
+    return null;
+  }
+}
+
+export async function verifyAdminToken(req: NextRequest): Promise<AdminUser | null> {
+  const token = extractToken(req);
+  if (!token) return null;
+
+  // Try HS256 first (admin login), then RS256 (SSO)
+  return (await verifyHS256(token)) ?? (await verifyRS256(token));
 }
 
 export function getClientIp(req: NextRequest): string {
