@@ -28,6 +28,7 @@ function generateSignature(
 
 export async function GET(request: NextRequest) {
     const adminUrl = process.env.NEXT_PUBLIC_ADMIN_URL || "https://admin.entro.ly";
+    const settingsUrl = `${adminUrl}/admin/settings`;
     const searchParams = request.nextUrl.searchParams;
     const code = searchParams.get("code");
     const stateParam = searchParams.get("state") || "";
@@ -37,12 +38,12 @@ export async function GET(request: NextRequest) {
     const stateCookie = request.cookies.get("tts_partner_state")?.value;
     if (!stateCookie || stateCookie !== stateParam) {
         console.error("[seller-callback] CSRF state mismatch — cookie=%s param=%s", stateCookie, stateParam);
-        return NextResponse.redirect(`${adminUrl}/settings?seller_error=State+mismatch`);
+        return NextResponse.redirect(`${settingsUrl}?seller_error=State+mismatch`);
     }
 
     if (error || !code) {
         console.log("[seller-callback] OAuth denied or no code: error=%s", error);
-        return NextResponse.redirect(`${adminUrl}/settings?seller_error=${encodeURIComponent(error || "No code received")}`);
+        return NextResponse.redirect(`${settingsUrl}?seller_error=${encodeURIComponent(error || "No code received")}`);
     }
 
     const appKey = process.env.TIKTOK_SHOP_APP_KEY;
@@ -120,13 +121,13 @@ export async function GET(request: NextRequest) {
 
         console.log("[seller-callback] seller token stored ✓ open_id=%s", token.open_id);
 
-        const redirect = NextResponse.redirect(`${adminUrl}/settings?seller_connected=1`);
+        const redirect = NextResponse.redirect(`${settingsUrl}?seller_connected=1`);
         redirect.cookies.delete("tts_partner_state");
         return redirect;
 
     } catch (err) {
         console.error("[seller-callback] ERROR:", err);
         const msg = err instanceof Error ? err.message : "Unknown error";
-        return NextResponse.redirect(`${adminUrl}/settings?seller_error=${encodeURIComponent(msg)}`);
+        return NextResponse.redirect(`${settingsUrl}?seller_error=${encodeURIComponent(msg)}`);
     }
 }
