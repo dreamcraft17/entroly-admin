@@ -84,8 +84,6 @@ model User {
   profiles         Profile[]
   RefreshToken     RefreshToken[]
   sessions         Session[]
-  adminAuditLogs   AdminAuditLog[]
-  campaigns        Campaign[]
 }
 
 model Commission {
@@ -312,11 +310,9 @@ model Campaign {
   frequency       CampaignFrequency @default(ONE_TIME)
   status          CampaignStatus    @default(DRAFT)
   autoPublish     Boolean           @default(false) @map("auto_publish")
-  createdBy       String            @map("created_by")
+  createdBy       String            @map("created_by")  // stored as plain string — no FK
   createdAt       DateTime          @default(now()) @map("created_at")
   updatedAt       DateTime          @updatedAt @map("updated_at")
-
-  creator User @relation(fields: [createdBy], references: [id])
 
   @@index([status])
   @@index([startDate, endDate])
@@ -325,7 +321,7 @@ model Campaign {
 
 model AdminAuditLog {
   id           String   @id @default(cuid())
-  operatorId   String   @map("operator_id")
+  operatorId   String   @map("operator_id")   // stored as plain string — no FK (operator may not exist in this DB)
   operatorRole String   @map("operator_role")
   actionType   String   @map("action_type")
   entityType   String   @map("entity_type")
@@ -334,8 +330,6 @@ model AdminAuditLog {
   afterValue   Json?    @map("after_value")
   ipAddress    String?  @map("ip_address")
   createdAt    DateTime @default(now()) @map("created_at")
-
-  operator User @relation(fields: [operatorId], references: [id])
 
   @@index([operatorId])
   @@index([entityType, entityId])
