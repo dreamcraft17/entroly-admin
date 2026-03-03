@@ -1,7 +1,7 @@
 /**
  * GET /api/admin/system/seller-auth
- * Initiates TikTok Shop SELLER OAuth for ENTROPI's own seller account.
- * This is a one-time setup — no user_type param (seller flow, not creator).
+ * Initiates TikTok Shop Partner Center OAuth for ENTROPI's partner/affiliate account.
+ * Uses service_id from Partner Center app — NOT the seller center flow.
  * Requires SUPER_ADMIN role.
  */
 
@@ -10,7 +10,9 @@ import { randomBytes } from "crypto";
 import { verifyAdminToken, hasMinRole } from "@/lib/auth";
 import { AdminRole } from "@prisma/client";
 
-const TIKTOK_SHOP_AUTH_URL = "https://auth.tiktok-shops.com/oauth/authorize";
+// Partner Center authorization URL — for ROW (rest of world) markets
+// US market would use: https://services.tiktokshops.us/open/authorize
+const TIKTOK_SHOP_AUTH_URL = "https://services.tiktokshop.com/open/authorize";
 
 export const dynamic = "force-dynamic";
 
@@ -23,23 +25,21 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: "Forbidden — SUPER_ADMIN required" }, { status: 403 });
     }
 
-    const appKey = process.env.TIKTOK_SHOP_APP_KEY;
-    if (!appKey) {
-        return NextResponse.json({ error: "TIKTOK_SHOP_APP_KEY not configured" }, { status: 500 });
+    // service_id from Partner Center app page (not app_key)
+    const serviceId = process.env.TIKTOK_SHOP_SERVICE_ID;
+    if (!serviceId) {
+        return NextResponse.json({ error: "TIKTOK_SHOP_SERVICE_ID not configured" }, { status: 500 });
     }
-
-    const adminUrl = process.env.NEXT_PUBLIC_ADMIN_URL || "https://admin.entro.ly";
-    const redirectUri = `${adminUrl}/api/admin/system/seller-callback`;
 
     // Use short-lived state token — store in cookie since no Redis in admin
     const state = randomBytes(16).toString("hex");
-    const url = `${TIKTOK_SHOP_AUTH_URL}?app_key=${appKey}&state=${encodeURIComponent(state)}&redirect_uri=${encodeURIComponent(redirectUri)}`;
+    const url = `${TIKTOK_SHOP_AUTH_URL}?service_id=${serviceId}&state=${encodeURIComponent(state)}`;
 
-    console.log("[seller-auth] initiating seller OAuth, admin=%s", admin.email);
+    console.log("[seller-auth] initiating Partner Center OAuth, admin=%s", admin.email);
 
     const res = NextResponse.redirect(url);
     // Store state in cookie to verify on callback (15 min TTL)
-    res.cookies.set("shop_seller_state", state, {
+    res.cookies.set("tts_partner_state", state, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: "lax",

@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
     const error = searchParams.get("error");
 
     // Verify CSRF state via cookie
-    const stateCookie = request.cookies.get("shop_seller_state")?.value;
+    const stateCookie = request.cookies.get("tts_partner_state")?.value;
     if (!stateCookie || stateCookie !== stateParam) {
         console.error("[seller-callback] CSRF state mismatch — cookie=%s param=%s", stateCookie, stateParam);
         return NextResponse.redirect(`${adminUrl}/settings?seller_error=State+mismatch`);
@@ -121,7 +121,7 @@ export async function GET(request: NextRequest) {
         console.log("[seller-callback] seller token stored ✓ open_id=%s", token.open_id);
 
         const redirect = NextResponse.redirect(`${adminUrl}/settings?seller_connected=1`);
-        redirect.cookies.delete("shop_seller_state");
+        redirect.cookies.delete("tts_partner_state");
         return redirect;
 
     } catch (err) {

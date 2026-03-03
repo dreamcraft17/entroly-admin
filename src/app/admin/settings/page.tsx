@@ -66,11 +66,11 @@ export default function SettingsPage() {
                 <div className="flex items-start justify-between gap-4">
                     <div>
                         <h2 className="text-base font-medium text-white">
-                            TikTok Shop — ENTROPI Seller Account
+                            TikTok Shop — ENTROPI Partner Account
                         </h2>
                         <p className="text-sm text-gray-400 mt-1">
-                            Connect ENTROPI&apos;s seller account once. All creator stats will be fetched
-                            using this seller token via the Partner API.
+                            Connect ENTROPI&apos;s Partner Center account once. Uses the service authorization
+                            flow (service_id) — not the seller center.
                         </p>
                     </div>
                     <a
@@ -98,7 +98,7 @@ export default function SettingsPage() {
                         </>
                     ) : (
                         <p className="text-gray-500">
-                            No seller account connected. Click &quot;Connect Seller&quot; to authorize.
+                            No partner account connected. Click &quot;Connect Seller&quot; to authorize via Partner Center.
                         </p>
                     )}
                 </div>
