@@ -31,9 +31,12 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: "TIKTOK_SHOP_SERVICE_ID not configured" }, { status: 500 });
     }
 
+    const adminUrl = process.env.NEXT_PUBLIC_ADMIN_URL || "https://admin.entro.ly";
+    const redirectUri = `${adminUrl}/api/admin/system/seller-callback`;
+
     // Use short-lived state token — store in cookie since no Redis in admin
     const state = randomBytes(16).toString("hex");
-    const url = `${TIKTOK_SHOP_AUTH_URL}?service_id=${serviceId}&state=${encodeURIComponent(state)}`;
+    const url = `${TIKTOK_SHOP_AUTH_URL}?service_id=${serviceId}&state=${encodeURIComponent(state)}&redirect_uri=${encodeURIComponent(redirectUri)}`;
 
     console.log("[seller-auth] initiating Partner Center OAuth, admin=%s", admin.email);
 
