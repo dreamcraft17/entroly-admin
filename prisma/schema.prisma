@@ -42,7 +42,7 @@ model User {
   email            String?           @unique
   password         String?
   name             String?
-  emailVerified    DateTime?
+  emailVerified    DateTime?         @map("emailVerified")
   image            String?
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
@@ -52,6 +52,31 @@ model User {
   mcn              Boolean           @default(false)
   whatsapp         String?
   adminRole        AdminRole?        @map("admin_role")
+
+  // SSO / web2 fields — kept here to prevent accidental drops
+  creatorVerified              Boolean?  @map("creator_verified")
+  tiktokUnionId                String?   @map("tiktok_union_id")
+  tiktokHandle                 String?   @map("tiktok_handle")
+  tiktokVerified               Boolean?  @map("tiktok_verified")
+  tiktokBio                    String?   @map("tiktok_bio")
+  tiktokProfileLink            String?   @map("tiktok_profile_link")
+  tiktokProfileWebLink         String?   @map("tiktok_profile_web_link")
+  tiktokFollowerCount          Int?      @map("tiktok_follower_count")
+  tiktokFollowingCount         Int?      @map("tiktok_following_count")
+  tiktokLikesCount             Int?      @map("tiktok_likes_count")
+  tiktokVideoCount             Int?      @map("tiktok_video_count")
+  tiktokStatsUpdatedAt         DateTime? @map("tiktok_stats_updated_at")
+  tiktokShopOpenId             String?   @map("tiktok_shop_open_id")
+  tiktokShopCreatorId          String?   @map("tiktok_shop_creator_id")
+  tiktokShopAccessToken        String?   @map("tiktok_shop_access_token")
+  tiktokShopRefreshToken       String?   @map("tiktok_shop_refresh_token")
+  tiktokShopTokenExpiresAt     DateTime? @map("tiktok_shop_token_expires_at")
+  tiktokShopConnectedAt        DateTime? @map("tiktok_shop_connected_at")
+  postRate30dWindowStart       DateTime? @map("post_rate_30d_window_start")
+  postRate30dGeneratedCount    Int?      @map("post_rate_30d_generated_count")
+  postRate30dPostedCount       Int?      @map("post_rate_30d_posted_count")
+  welcomeCreditGranted         Boolean?  @map("welcome_credit_granted")
+
   aiGeneratedPages AIGeneratedPage[]
   accounts         Account[]
   commission       Commission?
