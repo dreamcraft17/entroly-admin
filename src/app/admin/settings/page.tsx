@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 
 interface SellerStatus {
@@ -10,11 +10,28 @@ interface SellerStatus {
     expired: boolean | null;
 }
 
-export default function SettingsPage() {
+function Toasts() {
     const searchParams = useSearchParams();
     const sellerConnected = searchParams.get("seller_connected");
     const sellerError = searchParams.get("seller_error");
 
+    return (
+        <>
+            {sellerConnected && (
+                <div className="bg-emerald-900/50 border border-emerald-700 text-emerald-300 rounded-lg px-4 py-3 text-sm">
+                    TikTok Shop seller account connected successfully.
+                </div>
+            )}
+            {sellerError && (
+                <div className="bg-red-900/50 border border-red-700 text-red-300 rounded-lg px-4 py-3 text-sm">
+                    Error: {decodeURIComponent(sellerError)}
+                </div>
+            )}
+        </>
+    );
+}
+
+export default function SettingsPage() {
     const [status, setStatus] = useState<SellerStatus | null>(null);
     const [loading, setLoading] = useState(true);
 
@@ -40,17 +57,9 @@ export default function SettingsPage() {
         <div className="max-w-2xl space-y-8">
             <h1 className="text-xl font-semibold text-white">Settings</h1>
 
-            {/* Toast messages */}
-            {sellerConnected && (
-                <div className="bg-emerald-900/50 border border-emerald-700 text-emerald-300 rounded-lg px-4 py-3 text-sm">
-                    TikTok Shop seller account connected successfully.
-                </div>
-            )}
-            {sellerError && (
-                <div className="bg-red-900/50 border border-red-700 text-red-300 rounded-lg px-4 py-3 text-sm">
-                    Error: {decodeURIComponent(sellerError)}
-                </div>
-            )}
+            <Suspense fallback={null}>
+                <Toasts />
+            </Suspense>
 
             {/* TikTok Shop Seller Connection */}
             <section className="bg-gray-900 border border-gray-800 rounded-xl p-6 space-y-4">
