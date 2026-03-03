@@ -319,6 +319,16 @@ model Campaign {
   @@map("campaigns")
 }
 
+// ===== SYSTEM CONFIG (key-value store for platform-level settings) =====
+
+model SystemConfig {
+  key       String   @id
+  value     String   @db.Text
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("system_config")
+}
+
 model AdminAuditLog {
   id           String   @id @default(cuid())
   operatorId   String   @map("operator_id")   // stored as plain string — no FK (operator may not exist in this DB)

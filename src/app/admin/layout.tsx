@@ -8,6 +8,7 @@ const NAV = [
   { href: "/admin/scripts", label: "Script Library" },
   { href: "/admin/pois", label: "POIs" },
   { href: "/admin/campaigns", label: "Campaigns" },
+  { href: "/admin/settings", label: "Settings" },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
