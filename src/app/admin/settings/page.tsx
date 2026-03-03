@@ -60,7 +60,7 @@ export default function SettingsPage() {
                             TikTok Shop — ENTROPI Seller Account
                         </h2>
                         <p className="text-sm text-gray-400 mt-1">
-                            Connect ENTROPI's seller account once. All creator stats will be fetched
+                            Connect ENTROPI&apos;s seller account once. All creator stats will be fetched
                             using this seller token via the Partner API.
                         </p>
                     </div>
