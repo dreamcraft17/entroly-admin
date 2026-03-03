@@ -18,7 +18,6 @@ export async function GET(req: NextRequest) {
   const campaigns = await prisma.campaign.findMany({
     where: status ? { status: status as Prisma.EnumCampaignStatusFilter } : undefined,
     orderBy: { createdAt: "desc" },
-    include: { creator: { select: { id: true, name: true, email: true } } },
   });
 
   return NextResponse.json(campaigns);

@@ -14,7 +14,6 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 
   const campaign = await prisma.campaign.findUnique({
     where: { id: params.id },
-    include: { creator: { select: { id: true, name: true, email: true } } },
   });
   if (!campaign) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
