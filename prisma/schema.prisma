@@ -275,16 +275,20 @@ model ScriptLibrary {
 // ===== D-02: POI & CAMPAIGN MODELS =====
 
 model Poi {
-  id         String   @id @default(cuid())
-  externalId String?  @unique @map("external_id")
-  name       String
-  type       String   // ACC, TTD, FNB
-  market     String   // IDN, US, SGP
-  address    String?
-  city       String?
-  isActive   Boolean  @default(true) @map("is_active")
-  createdAt  DateTime @default(now()) @map("created_at")
-  updatedAt  DateTime @updatedAt @map("updated_at")
+  id               String   @id @default(cuid())
+  externalId       String?  @unique @map("external_id")
+  name             String
+  type             String   // ACC, TTD, FNB
+  market           String   // IDN, US, SGP
+  address          String?
+  city             String?
+  isActive         Boolean  @default(true) @map("is_active")
+  // web2 AI Video Factory fields — kept here to prevent accidental drops
+  monthlyPostCap   Int      @default(20) @map("monthly_post_cap")
+  monthlyPostCount Int      @default(0)  @map("monthly_post_count")
+  capResetAt       DateTime @default(now()) @map("cap_reset_at")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
 
   @@index([type])
   @@index([market])
